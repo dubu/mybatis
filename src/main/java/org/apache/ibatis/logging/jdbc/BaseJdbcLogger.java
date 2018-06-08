@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
 
 import org.apache.ibatis.logging.Log;
 
@@ -130,6 +131,42 @@ public abstract class BaseJdbcLogger {
       builder.append(" ");
     }
     return builder.toString();
+  }
+
+  protected String getParameterValueString2(String sql) {
+    List<Object> typeList = new ArrayList<Object>(columnValues.size());
+    String result = new String();
+
+    StringTokenizer whitespaceStripper = new StringTokenizer(sql, "\n\r\f");
+    StringBuilder builder = new StringBuilder();
+
+    while (whitespaceStripper.hasMoreTokens()) {
+      String token = whitespaceStripper.nextToken();
+
+      if (token.trim().length() > 0) {
+        builder.append(token);
+        builder.append("\n");
+      }
+    }
+    result = builder.toString();
+
+    for (Object value : columnValues) {
+      if (value == null) {
+        typeList.add("null");
+        result = result.replaceFirst("\\?", "null");
+      } else {
+        typeList.add(value + "(" + value.getClass().getSimpleName() + ")");
+        String param = value.toString();
+        param = Matcher.quoteReplacement(param);
+
+        if (value instanceof Integer || value instanceof Long) {
+          result = result.replaceFirst("\\?", param);
+        } else {
+          result = result.replaceFirst("\\?", "'" + param + "'");
+        }
+      }
+    }
+    return result;
   }
 
   protected boolean isDebugEnabled() {
