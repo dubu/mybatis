@@ -17,6 +17,7 @@ package org.apache.ibatis.logging.jdbc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -161,7 +162,10 @@ public abstract class BaseJdbcLogger {
 
         if (value instanceof Integer || value instanceof Long) {
           result = result.replaceFirst("\\?", param);
-        } else {
+        }else if(value instanceof Date) {
+          result = result.replaceFirst("\\?", "'" + param + " -9 '");
+        }
+        else {
           result = result.replaceFirst("\\?", "'" + param + "'");
         }
       }
